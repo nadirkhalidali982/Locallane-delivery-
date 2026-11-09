@@ -11,8 +11,8 @@ interface AuthState {
   roleError: string | null
   init: () => Promise<void>
   refreshRole: () => Promise<void>
-  signIn: (email: string, password: string) => Promise<string | null>
-  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null; needsConfirm: boolean }>
+  sendCode: (email: string, name?: string) => Promise<string | null>
+  verifyCode: (email: string, code: string) => Promise<string | null>
   signOut: () => Promise<void>
 }
 
@@ -59,23 +59,24 @@ export const useAuth = create<AuthState>((set, get) => ({
     })
   },
 
-  async signIn(email, password) {
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+  // Same email-code login as the LocalLane customer site. A code to an unknown email creates the account.
+  async sendCode(email, name) {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: { shouldCreateUser: true, ...(name?.trim() ? { data: { name: name.trim() } } : {}) },
+    })
+    return error ? error.message : null
+  },
+
+  async verifyCode(email, code) {
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: code.trim(),
+      type: 'email',
+    })
     if (error) return error.message
     await get().refreshRole()
     return null
-  },
-
-  async signUp(email, password, name) {
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: { data: { name: name.trim() } },
-    })
-    if (error) return { error: error.message, needsConfirm: false }
-    if (!data.session) return { error: null, needsConfirm: true }
-    await get().refreshRole()
-    return { error: null, needsConfirm: false }
   },
 
   async signOut() {
