@@ -7,14 +7,13 @@ import { useAuth } from '../store/authStore'
 import { homeFor } from '../lib/roles'
 
 export default function Login() {
-  const { session, role, loading, signIn, signUp } = useAuth()
-  const [mode, setMode] = useState<'in' | 'up'>('in')
+  const { session, role, loading, sendCode, verifyCode } = useAuth()
+  const [step, setStep] = useState<'email' | 'code'>('email')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [info, setInfo] = useState<string | null>(null)
 
   if (loading) return <Splash />
   if (session) return <Navigate to={homeFor(role)} replace />
@@ -24,18 +23,13 @@ export default function Login() {
     if (busy) return
     setBusy(true)
     setError(null)
-    setInfo(null)
-    if (mode === 'in') {
-      const err = await signIn(email, password)
+    if (step === 'email') {
+      const err = await sendCode(email, name)
       if (err) setError(err)
+      else setStep('code')
     } else {
-      if (password.length < 8) {
-        setError('Password must be at least 8 characters.')
-      } else {
-        const res = await signUp(email, password, name)
-        if (res.error) setError(res.error)
-        else if (res.needsConfirm) setInfo('Account created. Open the confirmation email, then sign in.')
-      }
+      const err = await verifyCode(email, code)
+      if (err) setError(err)
     }
     setBusy(false)
   }
@@ -66,75 +60,67 @@ export default function Login() {
               <Logo />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-ink-900">{mode === 'in' ? 'Sign in' : 'Create account'}</h2>
+          <h2 className="text-2xl font-bold text-ink-900">Sign in</h2>
           <p className="mt-1 text-sm text-slate-600">
-            {mode === 'in'
-              ? 'Use your LocalLane account email and password.'
-              : 'After you sign up, a Delivery Manager adds you to the team.'}
+            {step === 'email'
+              ? 'Enter your email. We send you a sign-in code, the same as on LocalLane.'
+              : `Enter the code we sent to ${email}.`}
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
-            {mode === 'up' && (
+            {step === 'email' ? (
+              <>
+                <label className="block text-sm font-medium text-slate-700">
+                  Email
+                  <input className={input} type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  Your name (only needed the first time)
+                  <input className={input} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={80} />
+                </label>
+              </>
+            ) : (
               <label className="block text-sm font-medium text-slate-700">
-                Full name
-                <input className={input} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+                Code
+                <input
+                  className={input + ' tracking-widest'}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  required
+                />
               </label>
             )}
-            <label className="block text-sm font-medium text-slate-700">
-              Email
-              <input
-                className={input}
-                type="email"
-                inputMode="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
-            </label>
-            <label className="block text-sm font-medium text-slate-700">
-              Password
-              <input
-                className={input}
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === 'in' ? 'current-password' : 'new-password'}
-                required
-              />
-            </label>
 
             {error && (
               <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
                 {error}
               </p>
             )}
-            {info && (
-              <p role="status" className="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">
-                {info}
-              </p>
-            )}
 
             <button
               type="submit"
-              disabled={busy || !email || !password}
+              disabled={busy || (step === 'email' ? !email : code.length < 6)}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-3 text-base font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
-              {mode === 'in' ? 'Sign in' : 'Create account'}
+              {step === 'email' ? 'Send code' : 'Sign in'}
             </button>
           </form>
 
-          <button
-            onClick={() => {
-              setMode(mode === 'in' ? 'up' : 'in')
-              setError(null)
-              setInfo(null)
-            }}
-            className="mt-5 text-sm font-medium text-brand-700 hover:underline"
-          >
-            {mode === 'in' ? 'New here? Create an account' : 'Already have an account? Sign in'}
-          </button>
+          {step === 'code' && (
+            <button
+              onClick={() => {
+                setStep('email')
+                setCode('')
+                setError(null)
+              }}
+              className="mt-5 text-sm font-medium text-brand-700 hover:underline"
+            >
+              Use a different email
+            </button>
+          )}
         </div>
       </section>
     </div>
