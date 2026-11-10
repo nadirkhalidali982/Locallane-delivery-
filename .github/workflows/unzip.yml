@@ -8,11 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          unzip -q locallane-delivery-batch1.zip
+          unzip -q -o locallane-delivery-batch3.zip
           cp -r locallane-delivery/. .
-          rm -rf locallane-delivery locallane-delivery-batch1.zip
+          rm -rf locallane-delivery locallane-delivery-batch3.zip
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add -A
-          git commit -m "Extract project"
+          git commit -m "Batch 3"
           git push
