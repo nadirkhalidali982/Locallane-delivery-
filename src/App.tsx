@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './store/authStore'
 import { MANAGE_ROLES, OPS_ROLES, homeFor } from './lib/roles'
 import ProtectedRoute from './components/ProtectedRoute'
-import ComingSoon from './components/ComingSoon'
 import Splash from './components/Splash'
 import OpsLayout from './layouts/OpsLayout'
 import RiderLayout from './layouts/RiderLayout'
@@ -12,6 +11,12 @@ import NoAccess from './pages/NoAccess'
 import NotFound from './pages/NotFound'
 import Overview from './pages/ops/Overview'
 import Team from './pages/ops/Team'
+import JobsPage from './pages/ops/JobsPage'
+import RiderOffers from './pages/rider/RiderOffers'
+import RiderTrip from './pages/rider/RiderTrip'
+import RiderHistory from './pages/rider/RiderHistory'
+import RidersPage from './pages/ops/RidersPage'
+import FinancePage from './pages/ops/FinancePage'
 import RiderHome from './pages/rider/RiderHome'
 import RiderProfile from './pages/rider/RiderProfile'
 
@@ -37,11 +42,11 @@ export default function App() {
       <Route element={<ProtectedRoute allow={OPS_ROLES} />}>
         <Route path="/ops" element={<OpsLayout />}>
           <Route index element={<Overview />} />
-          <Route path="orders" element={<ComingSoon title="Orders" milestone="Milestone 2" note="Orders marked ready for pickup will appear here for verification and dispatch." />} />
-          <Route path="dispatch" element={<ComingSoon title="Dispatch" milestone="Milestone 3" note="Rider discovery, offers and manual assignment." />} />
+          <Route path="orders" element={<JobsPage title="Orders" hint="Orders marked ready for pickup by shops. Check them, then dispatch." tabs={[{ label: 'Needs check', statuses: ['pending_verification'] }, { label: 'Closed', statuses: ['delivered', 'failed', 'cancelled'] }, { label: 'All', statuses: 'all' }]} />} />
+          <Route path="dispatch" element={<JobsPage title="Dispatch" hint="Send offers to nearby riders, or assign directly." tabs={[{ label: 'Ready', statuses: ['ready_for_dispatch', 'offering'] }, { label: 'With riders', statuses: ['assigned', 'picked_up'] }, { label: 'Failed', statuses: ['failed'] }]} />} />
           <Route element={<ProtectedRoute allow={MANAGE_ROLES} />}>
-            <Route path="riders" element={<ComingSoon title="Riders" milestone="Milestone 4" note="Rider approvals, documents and status." />} />
-            <Route path="finance" element={<ComingSoon title="Finance" milestone="Milestone 6" note="Earnings, COD collection and settlements." />} />
+            <Route path="riders" element={<RidersPage />} />
+            <Route path="finance" element={<FinancePage />} />
             <Route path="team" element={<Team />} />
           </Route>
         </Route>
@@ -50,9 +55,9 @@ export default function App() {
       <Route element={<ProtectedRoute allow={['rider']} />}>
         <Route path="/rider" element={<RiderLayout />}>
           <Route index element={<RiderHome />} />
-          <Route path="offers" element={<ComingSoon title="Offers" milestone="Milestone 3" note="Nearby delivery offers appear here." />} />
-          <Route path="trip" element={<ComingSoon title="Current trip" milestone="Milestone 5" note="Pickup, navigation and OTP delivery." />} />
-          <Route path="earnings" element={<ComingSoon title="Earnings" milestone="Milestone 6" note="Delivery earnings and history." />} />
+          <Route path="offers" element={<RiderOffers />} />
+          <Route path="trip" element={<RiderTrip />} />
+          <Route path="history" element={<RiderHistory />} />
           <Route path="profile" element={<RiderProfile />} />
         </Route>
       </Route>

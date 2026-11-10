@@ -45,6 +45,6 @@ export const RIDER_NAV: NavItem[] = [
   { to: '/rider', label: 'Home', icon: Home, end: true, roles: ['rider'] },
   { to: '/rider/offers', label: 'Offers', icon: Package, roles: ['rider'] },
   { to: '/rider/trip', label: 'Trip', icon: Navigation, roles: ['rider'] },
-  { to: '/rider/earnings', label: 'Earnings', icon: IndianRupee, roles: ['rider'] },
+  { to: '/rider/history', label: 'Earnings', icon: IndianRupee, roles: ['rider'] },
   { to: '/rider/profile', label: 'Profile', icon: User, roles: ['rider'] },
 ]

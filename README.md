@@ -3,7 +3,7 @@
 Separate delivery operations site (admin, staff, riders). Same Supabase project as the LocalLane customer site.
 
 ## Status
-Batch 1 (Milestones 0 and 1). Login, server-side roles, protected routes, ops and rider shells, Team management.
+Batches 1 to 4: foundation, orders, dispatch, rider portal, pickup + OTP delivery, finance. See docs/DEPLOY.md and docs/TESTS.md.
 Orders, dispatch, rider portal, finance: later batches.
 
 ## Run locally
