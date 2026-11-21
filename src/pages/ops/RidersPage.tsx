@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { rpc, type RiderAdminRow } from '../../lib/api'
+import { rpc, type RiderAdminRow, type RiderZonePair, type ZoneRow } from '../../lib/api'
 import { DOC_LABEL, ago } from '../../lib/format'
 import { cn } from '../../lib/cn'
 
 type Tab = 'pending' | 'approved' | 'other'
 
-function Row({ r, onChanged }: { r: RiderAdminRow; onChanged: () => void }) {
+function Row({ r, zones, allowed, onChanged }: { r: RiderAdminRow; zones: ZoneRow[]; allowed: string[]; onChanged: () => void }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [reject, setReject] = useState(false)
@@ -42,6 +42,26 @@ function Row({ r, onChanged }: { r: RiderAdminRow; onChanged: () => void }) {
         {r.docs.map((d) => <button key={d.doc_type} onClick={() => void view(d.path)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-brand-700">{DOC_LABEL[d.doc_type]}</button>)}
       </div>
       {r.review_note && <p className="mt-2 text-xs text-slate-600">Review note: {r.review_note}</p>}
+      {r.is_member && (
+        <div className="mt-3">
+          <p className="text-xs font-semibold text-slate-600">Zones this rider may take orders from</p>
+          {zones.length === 0 ? <p className="mt-1 text-xs text-amber-800">Create a zone first (Zones page).</p> : (
+            <div className="mt-1 flex flex-wrap gap-2">
+              {zones.map((z) => {
+                const on = allowed.includes(z.zone_id)
+                return (
+                  <button key={z.zone_id} aria-pressed={on} disabled={busy}
+                    onClick={() => void run(() => rpc('delivery_set_rider_zones', { p_rider: r.user_id, p_zones: on ? allowed.filter((x) => x !== z.zone_id) : [...allowed, z.zone_id] }))}
+                    className={cn('rounded-full border px-3 py-1 text-xs font-semibold', on ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-slate-700')}>
+                    {z.zone_name}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+          {allowed.length === 0 && zones.length > 0 && <p className="mt-1 text-xs text-amber-800">No zone selected: this rider gets no offers.</p>}
+        </div>
+      )}
       {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="mt-3 flex flex-wrap gap-2">
         {r.app_status && r.app_status !== 'approved' && (
@@ -68,9 +88,14 @@ export default function RidersPage() {
   const [rows, setRows] = useState<RiderAdminRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('pending')
+  const [zones, setZones] = useState<ZoneRow[]>([])
+  const [pairs, setPairs] = useState<RiderZonePair[]>([])
 
   const load = useCallback(async () => {
-    try { setRows(await rpc<RiderAdminRow[]>('delivery_riders_list')); setError(null) }
+    try {
+      const [list, zs, ps] = await Promise.all([rpc<RiderAdminRow[]>('delivery_riders_list'), rpc<ZoneRow[]>('delivery_zones_overview'), rpc<RiderZonePair[]>('delivery_rider_zone_pairs')])
+      setRows(list); setZones(zs); setPairs(ps); setError(null)
+    }
     catch (e) { setError(e instanceof Error ? e.message : 'Could not load') }
   }, [])
   useEffect(() => { void load() }, [load])
@@ -94,7 +119,7 @@ export default function RidersPage() {
       </div>
       {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       {rows && pick(tab).length === 0 && <p className="rounded-2xl bg-white p-6 text-sm text-slate-600 ring-1 ring-slate-200">Nothing here.</p>}
-      <div className="space-y-3">{pick(tab).map((r) => <Row key={r.user_id} r={r} onChanged={() => void load()} />)}</div>
+      <div className="space-y-3">{pick(tab).map((r) => <Row key={r.user_id} r={r} zones={zones} allowed={pairs.filter((p) => p.rider_id === r.user_id).map((p) => p.zone_id)} onChanged={() => void load()} />)}</div>
     </div>
   )
 }

@@ -16,3 +16,10 @@ all delivery tables have RLS and no write access for API roles; one open offer p
 - Real parallel clicks by two riders at the same millisecond (protected by row locks + unique indexes, verified separately; not load-tested).
 - Mobile layouts, PWA install, map rendering, document upload to storage, email-code login on the new domain.
 - Real LocalLane shop flow after the customer-site patch is deployed.
+
+# Batch 2 and 3 additions (database level, rolled back)
+Same checkout key = one order, stock taken once; per-phone throttle (8 per 15 min); Accept with 5 min prep = checked and offered at once; 20 min prep waits; auto-dispatch when due; no rider = flagged;
+reached-shop; shop and customer stage views (other users see nothing); pickup blocked until packed.
+Zones: only the Super Admin creates/edits zones; duplicate names blocked; anonymous users can read service areas only; a shop's zone follows its location and cannot be forged;
+LocalLane blocked for shops without a location or outside every zone; riders without zone permission, from another zone, with stale GPS, 55 km away or without GPS are never offered the job;
+paused zone stops automatic offers; offer length and rider fee come from the zone; manual assignment needs zone permission; customer pin outside the zone goes to staff; auto-offline.

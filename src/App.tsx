@@ -12,11 +12,10 @@ import NotFound from './pages/NotFound'
 import Overview from './pages/ops/Overview'
 import Team from './pages/ops/Team'
 import JobsPage from './pages/ops/JobsPage'
-import RiderOffers from './pages/rider/RiderOffers'
-import RiderTrip from './pages/rider/RiderTrip'
 import RiderHistory from './pages/rider/RiderHistory'
 import RidersPage from './pages/ops/RidersPage'
 import FinancePage from './pages/ops/FinancePage'
+import ZonesPage from './pages/ops/ZonesPage'
 import RiderHome from './pages/rider/RiderHome'
 import RiderProfile from './pages/rider/RiderProfile'
 
@@ -42,10 +41,11 @@ export default function App() {
       <Route element={<ProtectedRoute allow={OPS_ROLES} />}>
         <Route path="/ops" element={<OpsLayout />}>
           <Route index element={<Overview />} />
-          <Route path="orders" element={<JobsPage title="Orders" hint="Orders marked ready for pickup by shops. Check them, then dispatch." tabs={[{ label: 'Needs check', statuses: ['pending_verification'] }, { label: 'Closed', statuses: ['delivered', 'failed', 'cancelled'] }, { label: 'All', statuses: 'all' }]} />} />
+          <Route path="orders" element={<JobsPage title="Orders" hint="Orders from shops that chose LocalLane Delivery. Only orders that need a manual check wait here." tabs={[{ label: 'Needs attention', statuses: ['pending_verification'] }, { label: 'Closed', statuses: ['delivered', 'failed', 'cancelled'] }, { label: 'All', statuses: 'all' }]} />} />
           <Route path="dispatch" element={<JobsPage title="Dispatch" hint="Send offers to nearby riders, or assign directly." tabs={[{ label: 'Ready', statuses: ['ready_for_dispatch', 'offering'] }, { label: 'With riders', statuses: ['assigned', 'picked_up'] }, { label: 'Failed', statuses: ['failed'] }]} />} />
           <Route element={<ProtectedRoute allow={MANAGE_ROLES} />}>
             <Route path="riders" element={<RidersPage />} />
+            <Route path="zones" element={<ZonesPage />} />
             <Route path="finance" element={<FinancePage />} />
             <Route path="team" element={<Team />} />
           </Route>
@@ -55,8 +55,8 @@ export default function App() {
       <Route element={<ProtectedRoute allow={['rider']} />}>
         <Route path="/rider" element={<RiderLayout />}>
           <Route index element={<RiderHome />} />
-          <Route path="offers" element={<RiderOffers />} />
-          <Route path="trip" element={<RiderTrip />} />
+          <Route path="offers" element={<Navigate to="/rider" replace />} />
+          <Route path="trip" element={<Navigate to="/rider" replace />} />
           <Route path="history" element={<RiderHistory />} />
           <Route path="profile" element={<RiderProfile />} />
         </Route>

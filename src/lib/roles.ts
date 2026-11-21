@@ -1,4 +1,4 @@
-import { Bike, Home, IndianRupee, LayoutDashboard, Navigation, Package, Route, User, Users, type LucideIcon } from 'lucide-react'
+import { Bike, Home, MapPin, IndianRupee, LayoutDashboard, Navigation, Package, Route, User, Users, type LucideIcon } from 'lucide-react'
 
 export type DeliveryRole = 'super_admin' | 'manager' | 'staff' | 'rider'
 
@@ -37,14 +37,13 @@ export const OPS_NAV: NavItem[] = [
   { to: '/ops/orders', label: 'Orders', icon: Package, roles: OPS_ROLES },
   { to: '/ops/dispatch', label: 'Dispatch', icon: Route, roles: OPS_ROLES },
   { to: '/ops/riders', label: 'Riders', icon: Bike, roles: MANAGE_ROLES },
+  { to: '/ops/zones', label: 'Zones', icon: MapPin, roles: MANAGE_ROLES },
   { to: '/ops/finance', label: 'Finance', icon: IndianRupee, roles: MANAGE_ROLES },
   { to: '/ops/team', label: 'Team', icon: Users, roles: MANAGE_ROLES },
 ]
 
 export const RIDER_NAV: NavItem[] = [
   { to: '/rider', label: 'Home', icon: Home, end: true, roles: ['rider'] },
-  { to: '/rider/offers', label: 'Offers', icon: Package, roles: ['rider'] },
-  { to: '/rider/trip', label: 'Trip', icon: Navigation, roles: ['rider'] },
   { to: '/rider/history', label: 'Earnings', icon: IndianRupee, roles: ['rider'] },
-  { to: '/rider/profile', label: 'Profile', icon: User, roles: ['rider'] },
+  { to: '/rider/profile', label: 'Me', icon: User, roles: ['rider'] },
 ]

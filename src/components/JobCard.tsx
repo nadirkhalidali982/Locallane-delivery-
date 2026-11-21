@@ -69,6 +69,18 @@ export default function JobCard({ job, role, onChanged }: { job: JobRow; role: D
         </div>
       </div>
 
+      {job.zone_name && <p className="mt-2 text-xs font-semibold text-slate-500">Zone: {job.zone_name}</p>}
+      {job.geo_flag === 'no_zone' && <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">The shop is not inside any delivery zone. Check the shop location or create a zone.</p>}
+      {job.geo_flag === 'customer_outside_zone' && <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">The customer&apos;s pin is outside this delivery zone. Call the customer or the shop before you verify.</p>}
+      {job.geo_flag === 'no_customer_pin' && s !== 'delivered' && s !== 'cancelled' && s !== 'failed' && <p className="mt-2 text-xs text-slate-500">The customer did not share an exact pin. The rider will use the address.</p>}
+      {s === 'ready_for_dispatch' && job.offer_after && new Date(job.offer_after).getTime() > Date.now() && (
+        <p className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900">Rider offer goes out automatically at {new Date(job.offer_after).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} (shop needs {job.prep_minutes ?? 10} min).</p>
+      )}
+      {(s === 'ready_for_dispatch' || s === 'offering') && job.no_rider_since && (
+        <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">No rider found for {Math.max(1, Math.round((Date.now() - new Date(job.no_rider_since).getTime()) / 60000))} min. Choose a rider or call one.</p>
+      )}
+      {s === 'assigned' && job.at_shop_at && <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">Rider has reached the shop.</p>}
+      {job.auto_verified && s !== 'pending_verification' && <p className="mt-2 text-xs text-slate-500">Details checked automatically.</p>}
       {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       {msg && <p role="status" className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">{msg}</p>}
 

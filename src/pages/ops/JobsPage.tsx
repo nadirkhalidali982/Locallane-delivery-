@@ -3,6 +3,7 @@ import { useAuth } from '../../store/authStore'
 import { useLive } from '../../hooks/useLive'
 import { rpc, type JobRow, type JobStatus } from '../../lib/api'
 import JobCard from '../../components/JobCard'
+import RidersBoard from '../../components/RidersBoard'
 import { cn } from '../../lib/cn'
 
 export interface Tab { label: string; statuses: JobStatus[] | 'all' }
@@ -36,6 +37,7 @@ export default function JobsPage({ title, hint, tabs }: { title: string; hint: s
         <h1 className="text-2xl font-bold text-ink-900">{title}</h1>
         <p className="text-sm text-slate-600">{hint}</p>
       </div>
+      {title === 'Dispatch' && <RidersBoard />}
       <div className="flex flex-wrap gap-2" role="tablist">
         {tabs.map((x, i) => (
           <button key={x.label} role="tab" aria-selected={i === tab} onClick={() => setTab(i)}

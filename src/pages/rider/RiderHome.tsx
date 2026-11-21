@@ -1,32 +1,43 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../store/authStore'
+import { rpc, type RiderJob, type RiderToday } from '../../lib/api'
+import { money } from '../../lib/format'
+import { useLive } from '../../hooks/useLive'
 import OnlineToggle from '../../components/rider/OnlineToggle'
 import OffersList from '../../components/rider/OffersList'
-import { rpc, type RiderJob } from '../../lib/api'
+import RiderTrip from './RiderTrip'
 
+/** The only screen a rider needs: status, today's numbers, then either a new order or the delivery in progress. */
 export default function RiderHome() {
-  const { name, session } = useAuth()
   const [online, setOnline] = useState(false)
-  const [job, setJob] = useState<RiderJob | null>(null)
+  const [job, setJob] = useState<boolean | null>(null)
+  const [today, setToday] = useState<RiderToday | null>(null)
   const onChange = useCallback((v: boolean) => setOnline(v), [])
-  const loadJob = useCallback(async () => {
-    try { setJob((await rpc<RiderJob[]>('rider_my_jobs'))[0] ?? null) } catch { /* shown on Trip tab */ }
+  const load = useCallback(async () => {
+    try { setJob((await rpc<RiderJob[]>('rider_my_jobs')).length > 0) } catch { setJob(false) }
+    try { setToday(await rpc<RiderToday>('rider_today')) } catch { /* shown as dashes */ }
   }, [])
-  useEffect(() => { void loadJob() }, [loadJob])
+  useEffect(() => { void load() }, [load])
+  useLive(load, ['delivery_jobs'], 30000)
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-ink-900">Hi, {name || session?.user.email}</h1>
-      <OnlineToggle onChange={onChange} />
-      {job && (
-        <Link to="/rider/trip" className="block rounded-2xl bg-ink-900 p-5 text-white">
-          <p className="text-sm text-accent-400">Current delivery</p>
-          <p className="mt-1 text-lg font-bold">Order #{job.order_no} · {job.shop_name}</p>
-          <p className="mt-1 text-sm text-slate-300">Tap to open pickup and address</p>
-        </Link>
+      <OnlineToggle onChange={onChange} compact={job === true} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+          <p className="text-xs text-slate-500">Today</p>
+          <p className="text-2xl font-extrabold text-ink-900">{today ? today.deliveries : '-'} <span className="text-sm font-semibold text-slate-500">delivered</span></p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+          <p className="text-xs text-slate-500">Earned today</p>
+          <p className="text-2xl font-extrabold text-emerald-700">{today ? money(today.earned) : '-'}</p>
+        </div>
+      </div>
+      {today && today.cod_held > 0 && (
+        <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">You hold {money(today.cod_held)} COD cash. Deposit it with the office.</p>
       )}
-      {online && !job && <OffersList onAccepted={() => void loadJob()} />}
+      {job === true && <RiderTrip embedded onChanged={() => void load()} />}
+      {job === false && online && <OffersList onAccepted={() => void load()} />}
+      {job === false && !online && <p className="rounded-2xl bg-white p-5 text-center text-sm text-slate-600 ring-1 ring-slate-200">Go online to get orders.</p>}
     </div>
   )
 }

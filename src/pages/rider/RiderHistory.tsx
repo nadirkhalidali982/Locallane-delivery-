@@ -14,6 +14,7 @@ export default function RiderHistory() {
   const [msg, setMsg] = useState<string | null>(null)
   const [dispute, setDispute] = useState<string | null>(null)
   const [note, setNote] = useState('')
+  const [showTx, setShowTx] = useState(false)
 
   useEffect(() => {
     rpc<HistoryRow[]>('rider_my_history').then(setRows).catch((e) => setError(e instanceof Error ? e.message : 'Could not load'))
@@ -70,8 +71,8 @@ export default function RiderHistory() {
         ))}
       </ul>
 
-      <h2 className="pt-2 text-sm font-semibold text-slate-700">Transactions</h2>
-      <ul className="divide-y divide-slate-100 rounded-2xl bg-white ring-1 ring-slate-200">
+      <button onClick={() => setShowTx(!showTx)} className="pt-2 text-sm font-semibold text-brand-700">{showTx ? 'Hide transactions' : 'Show transactions'}</button>
+      {showTx && <ul className="divide-y divide-slate-100 rounded-2xl bg-white ring-1 ring-slate-200">
         {(earn?.rows ?? []).length === 0 && <li className="p-4 text-sm text-slate-600">Nothing yet.</li>}
         {(earn?.rows ?? []).map((l) => (
           <li key={l.id} className="flex items-center justify-between gap-3 px-4 py-3">
@@ -82,7 +83,7 @@ export default function RiderHistory() {
             <p className={cn('shrink-0 text-sm font-bold', l.amount > 0 ? 'text-emerald-700' : 'text-slate-700')}>{l.amount > 0 ? '+' : ''}{money(l.amount)}</p>
           </li>
         ))}
-      </ul>
+      </ul>}
     </div>
   )
 }
